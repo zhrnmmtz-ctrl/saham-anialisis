@@ -3,179 +3,226 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Advanced AI Stock Analytics Dashboard</title>
+    <title>🚀 AI-Powered Financial Analytics Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-crosshair"></script>
     <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
       :root {
-        --bg-main: #0b0f19;
-        --bg-card: #131a2c;
-        --border-color: #222d47;
+        --bg-main: #0a0e27;
+        --bg-card: #111a3a;
+        --bg-secondary: #1a2447;
+        --border-color: #2a3f5f;
         --text-primary: #ffffff;
-        --text-secondary: #8a99ad;
-        --accent-green: #00e676;
-        --accent-red: #ff3d00;
-        --accent-blue: #29b6f6;
+        --text-secondary: #8a9baf;
+        --accent-green: #00f0b8;
+        --accent-red: #ff4757;
+        --accent-blue: #2196f3;
+        --accent-purple: #a855f7;
+        --accent-yellow: #ffd700;
       }
 
       body {
-        background-color: var(--bg-main);
+        background: linear-gradient(135deg, var(--bg-main) 0%, #0d1535 100%);
         color: var(--text-primary);
-        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        margin: 0;
-        padding: 20px;
+        font-family: "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+        overflow-x: hidden;
+        min-height: 100vh;
       }
 
+      /* HEADER FUTURISTIK */
       .header {
+        background: linear-gradient(90deg, rgba(33, 150, 243, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+        border-bottom: 1px solid var(--border-color);
+        padding: 20px 30px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 15px;
-        margin-bottom: 25px;
+        backdrop-filter: blur(10px);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
       }
 
       .header h1 {
-        margin: 0;
-        font-size: 24px;
-        font-weight: 700;
-        letter-spacing: 0.5px;
+        font-size: 28px;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -1px;
       }
 
-      .control-panel {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        padding: 15px 20px;
-        border-radius: 12px;
+      .status-indicator {
         display: flex;
-        gap: 15px;
         align-items: center;
-        margin-bottom: 25px;
-        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--text-secondary);
+        background: rgba(0, 240, 184, 0.1);
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 1px solid var(--accent-green);
+      }
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--accent-green);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      /* CONTROL PANEL */
+      .control-panel {
+        background: linear-gradient(135deg, rgba(26, 36, 71, 0.8) 0%, rgba(26, 36, 71, 0.4) 100%);
+        border: 1px solid var(--border-color);
+        padding: 25px 30px;
+        border-radius: 16px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 30px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
       }
 
       .input-group {
         display: flex;
         flex-direction: column;
-        gap: 5px;
+        gap: 8px;
       }
+
       .input-group label {
         font-size: 12px;
         color: var(--text-secondary);
-        font-weight: 600;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
       }
-      .control-panel input,
-      .control-panel select {
-        background: var(--bg-main);
-        border: 1px solid var(--border-color);
+
+      .control-panel select,
+      .control-panel input {
+        background: rgba(10, 14, 39, 0.8);
+        border: 1.5px solid var(--border-color);
         color: white;
-        padding: 10px 15px;
-        border-radius: 8px;
+        padding: 12px 16px;
+        border-radius: 10px;
         font-size: 14px;
-        outline: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
       }
-      .control-panel input:focus,
-      .control-panel select:focus {
+
+      .control-panel select:hover,
+      .control-panel input:hover {
         border-color: var(--accent-blue);
+        background: rgba(10, 14, 39, 0.95);
+      }
+
+      .control-panel select:focus,
+      .control-panel input:focus {
+        border-color: var(--accent-purple);
+        box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+        outline: none;
       }
 
       .btn-analyze {
-        background: linear-gradient(135deg, #29b6f6, #0288d1);
+        background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
         color: white;
         border: none;
-        padding: 11px 24px;
-        border-radius: 8px;
+        padding: 14px 32px;
+        border-radius: 10px;
         cursor: pointer;
-        font-weight: 600;
-        font-size: 14px;
+        font-weight: 700;
+        font-size: 15px;
         transition: all 0.3s ease;
-        margin-top: 18px;
-      }
-      .btn-analyze:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(41, 182, 246, 0.3);
-      }
-      .btn-analyze:disabled {
-        background: #455a64;
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 8px 20px rgba(33, 150, 243, 0.3);
+        height: fit-content;
+        align-self: flex-end;
       }
 
+      .btn-analyze:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(168, 85, 247, 0.4);
+      }
+
+      .btn-analyze:disabled {
+        background: var(--text-secondary);
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      /* DASHBOARD GRID */
       .dashboard-grid {
         display: grid;
         grid-template-columns: 2fr 1fr 1fr;
         gap: 20px;
+        padding: 0 30px 30px;
       }
 
       .card {
-        background: var(--bg-card);
+        background: linear-gradient(135deg, rgba(17, 26, 58, 0.9) 0%, rgba(17, 26, 58, 0.5) 100%);
         border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 20px;
+        border-radius: 16px;
+        padding: 24px;
         position: relative;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
       }
 
-      .full-width {
-        grid-column: span 3;
+      .card:hover {
+        border-color: var(--accent-blue);
+        box-shadow: 0 12px 40px rgba(33, 150, 243, 0.2);
       }
-      
-      .half-width {
-        grid-column: span 1.5;
-      }
+
+      .full-width { grid-column: span 3; }
+      .half-width { grid-column: span 1.5; }
 
       .card-title {
-        font-size: 15px;
-        font-weight: 600;
+        font-size: 14px;
+        font-weight: 700;
         color: var(--text-secondary);
-        margin-bottom: 15px;
+        margin-bottom: 18px;
         display: flex;
         justify-content: space-between;
+        align-items: center;
+        text-transform: uppercase;
+        letter-spacing: 1px;
       }
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      th,
-      td {
-        padding: 12px 15px;
-        text-align: left;
-        border-bottom: 1px solid var(--border-color);
-        font-size: 14px;
-      }
-      th {
-        color: var(--text-secondary);
-        font-weight: 600;
-      }
-
-      .status-badge {
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: bold;
-      }
-      .badge-green {
-        background: rgba(0, 230, 118, 0.15);
-        color: var(--accent-green);
-      }
-      .badge-red {
-        background: rgba(255, 61, 0, 0.15);
-        color: var(--accent-red);
-      }
-      .badge-blue {
-        background: rgba(41, 182, 246, 0.15);
+      .card-title-accent {
         color: var(--accent-blue);
       }
 
+      /* CHART CONTAINER */
+      .chart-container {
+        position: relative;
+        height: 360px;
+        margin-bottom: 10px;
+      }
+
+      /* LOADING OVERLAY */
       .loading-overlay {
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(11, 15, 25, 0.85);
+        background: rgba(10, 14, 39, 0.9);
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -183,317 +230,379 @@
         border-radius: 12px;
         z-index: 10;
         display: none;
+        backdrop-filter: blur(5px);
       }
+
       .spinner {
-        width: 40px;
-        height: 40px;
-        border: 4px solid var(--border-color);
-        border-top-color: var(--accent-blue);
+        width: 50px;
+        height: 50px;
+        border: 3px solid var(--border-color);
+        border-top-color: var(--accent-purple);
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        margin-bottom: 10px;
-      }
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
+        margin-bottom: 15px;
       }
 
-      /* TOOLTIP CHART */
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      .loading-text {
+        font-size: 13px;
+        color: var(--text-secondary);
+        animation: blink 1.5s infinite;
+      }
+
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+
+      /* TOOLTIP */
       .chart-tooltip {
         position: absolute;
-        background: rgba(19, 26, 44, 0.95);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 10px 15px;
+        background: rgba(10, 14, 39, 0.95);
+        border: 1.5px solid var(--accent-blue);
+        border-radius: 12px;
+        padding: 14px 18px;
         pointer-events: none;
-        font-size: 13px;
+        font-size: 12px;
         z-index: 100;
         display: none;
-      }
-      .chart-tooltip.show {
-        display: block;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
       }
 
-      /* ZONE 5: SENTIMENT + TECHNICAL ANALYSIS */
+      .chart-tooltip.show { display: block; }
+
+      .tooltip-item {
+        margin: 6px 0;
+        color: var(--text-secondary);
+      }
+
+      .tooltip-item strong {
+        color: var(--accent-blue);
+      }
+
+      /* PREDICTION CARDS */
+      .prediction-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-top: 15px;
+      }
+
+      .prediction-box {
+        background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(168, 85, 247, 0.1));
+        border: 1px solid var(--accent-blue);
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      .prediction-box:hover {
+        border-color: var(--accent-purple);
+        box-shadow: 0 6px 20px rgba(168, 85, 247, 0.2);
+      }
+
+      .prediction-timeframe {
+        font-size: 11px;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+      }
+
+      .prediction-price {
+        font-size: 22px;
+        font-weight: 800;
+        color: white;
+        margin: 8px 0;
+      }
+
+      .prediction-change {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 10px;
+        border-radius: 6px;
+        display: inline-block;
+      }
+
+      /* ANALYSIS CARDS */
       .analysis-container {
         display: flex;
         flex-direction: column;
-        gap: 15px;
+        gap: 12px;
         max-height: 400px;
         overflow-y: auto;
       }
 
       .analysis-card {
-        background: rgba(41, 182, 246, 0.05);
+        background: linear-gradient(135deg, rgba(33, 150, 243, 0.08), rgba(0, 240, 184, 0.08));
         border-left: 4px solid var(--accent-blue);
-        padding: 12px;
-        border-radius: 6px;
-        font-size: 13px;
+        border-radius: 10px;
+        padding: 14px;
+        font-size: 12px;
+        transition: all 0.3s ease;
+      }
+
+      .analysis-card:hover {
+        border-left-color: var(--accent-purple);
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(0, 240, 184, 0.12));
       }
 
       .analysis-title {
-        font-weight: 600;
+        font-weight: 700;
         color: var(--accent-blue);
-        margin-bottom: 5px;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.5px;
       }
 
       .analysis-content {
         color: var(--text-secondary);
-        line-height: 1.5;
+        line-height: 1.6;
       }
 
-      .sentiment-container {
+      /* SIGNAL BADGE */
+      .signal-display {
         display: flex;
         flex-direction: column;
         justify-content: center;
+        align-items: center;
         height: 100%;
         gap: 15px;
       }
 
-      .sentiment-status {
-        display: flex;
-        align-items: center;
-        gap: 30px;
-        justify-content: center;
-        text-align: center;
-        min-height: 100px;
+      .signal-emoji {
+        font-size: 56px;
+        animation: float 3s ease-in-out infinite;
       }
 
-      .sentiment-score {
-        font-size: 48px;
-        font-weight: bold;
-        color: var(--accent-blue);
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
       }
 
-      #newsSentimentList {
-        margin: 0;
-        padding-left: 12px;
-        max-height: 100px;
-        overflow-y: auto;
+      .signal-text {
+        font-size: 16px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
       }
 
-      #newsSentimentList li {
+      .signal-confidence {
         font-size: 12px;
         color: var(--text-secondary);
-        margin-bottom: 6px;
-        list-style: none;
-        padding-left: 0;
+        background: var(--bg-secondary);
+        padding: 8px 14px;
+        border-radius: 20px;
+        width: fit-content;
       }
 
-      #newsSentimentList li::before {
-        content: "• ";
-        color: var(--accent-blue);
-        margin-right: 6px;
+      /* SCROLLBAR */
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--bg-main);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--accent-blue);
+        border-radius: 3px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--accent-purple);
+      }
+
+      /* RESPONSIVE */
+      @media (max-width: 1400px) {
+        .dashboard-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+        .full-width { grid-column: span 2; }
+        .half-width { grid-column: span 1; }
+      }
+
+      @media (max-width: 768px) {
+        .dashboard-grid { grid-template-columns: 1fr; }
+        .full-width, .half-width { grid-column: span 1; }
+        .control-panel { grid-template-columns: 1fr; padding: 20px; }
+        .header { flex-direction: column; gap: 15px; }
       }
     </style>
   </head>
   <body>
+    <!-- HEADER -->
     <div class="header">
-      <h1>⚡ Advanced AI Stock Engine & Live Dashboard</h1>
-      <div style="font-size: 14px; color: var(--text-secondary)" id="liveTime">
-        System Status: Ready
+      <h1>🚀 AI Financial Analytics Dashboard</h1>
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        System Active
       </div>
     </div>
 
+    <!-- CONTROL PANEL -->
     <div class="control-panel">
       <div class="input-group">
-        <label for="tickerSelect">Pilih Saham (Stock Selector)</label>
+        <label>📊 Pilih Asset</label>
         <select id="tickerSelect">
-          <optgroup label="🇺🇸 Teknologi US">
-            <option value="NVDA">NVDA - NVIDIA Corporation</option>
-            <option value="AAPL">AAPL - Apple Inc.</option>
-            <option value="MSFT">MSFT - Microsoft Corporation</option>
-            <option value="GOOGL">GOOGL - Alphabet Inc.</option>
-            <option value="TSLA">TSLA - Tesla Inc.</option>
-            <option value="META">META - Meta Platforms</option>
-            <option value="AMZN">AMZN - Amazon.com Inc.</option>
-            <option value="AMD">AMD - Advanced Micro Devices</option>
-            <option value="NFLX">NFLX - Netflix Inc.</option>
-            <option value="UBER">UBER - Uber Technologies</option>
+          <optgroup label="🇺🇸 TECH US (Silicon Valley)">
+            <option value="NVDA">NVDA - NVIDIA (AI Chips)</option>
+            <option value="AAPL">AAPL - Apple (Consumer Tech)</option>
+            <option value="MSFT">MSFT - Microsoft (Cloud & AI)</option>
+            <option value="GOOGL">GOOGL - Alphabet (Search & AI)</option>
+            <option value="TSLA">TSLA - Tesla (EV & Energy)</option>
+            <option value="META">META - Meta (Social Media)</option>
+            <option value="AMZN">AMZN - Amazon (E-Commerce)</option>
           </optgroup>
-          <optgroup label="💰 Finance & Banking">
+          <optgroup label="💰 FINANCE (Banking & Investment)">
             <option value="JPM">JPM - JPMorgan Chase</option>
             <option value="BAC">BAC - Bank of America</option>
             <option value="GS">GS - Goldman Sachs</option>
-            <option value="WFC">WFC - Wells Fargo</option>
           </optgroup>
-          <optgroup label="🏥 Healthcare">
+          <optgroup label="🏥 HEALTHCARE (Pharmaceutical)">
             <option value="JNJ">JNJ - Johnson & Johnson</option>
             <option value="PFE">PFE - Pfizer Inc.</option>
-            <option value="UNH">UNH - UnitedHealth Group</option>
-            <option value="ABBV">ABBV - AbbVie Inc.</option>
           </optgroup>
-          <optgroup label="⚡ Energy">
-            <option value="XOM">XOM - Exxon Mobil</option>
-            <option value="CVX">CVX - Chevron Corporation</option>
+          <optgroup label="💎 CRYPTO (Digital Assets)">
+            <option value="BTC-USD">₿ BTC-USD - Bitcoin</option>
+            <option value="ETH-USD">Ξ ETH-USD - Ethereum</option>
           </optgroup>
-          <optgroup label="🏭 Industrial">
-            <option value="BA">BA - Boeing Company</option>
-            <option value="CAT">CAT - Caterpillar Inc.</option>
-          </optgroup>
-          <optgroup label="💎 Crypto & Digital Assets">
-            <option value="BTC-USD">BTC-USD - Bitcoin</option>
-            <option value="ETH-USD">ETH-USD - Ethereum</option>
-            <option value="SOL-USD">SOL-USD - Solana</option>
+          <optgroup label="💱 FOREX (Major Currency Pairs)">
+            <option value="EURUSD=X">EUR/USD - Euro vs Dollar</option>
+            <option value="GBPUSD=X">GBP/USD - British Pound vs Dollar</option>
+            <option value="USDJPY=X">USD/JPY - Dollar vs Japanese Yen</option>
+            <option value="USDCHF=X">USD/CHF - Dollar vs Swiss Franc</option>
+            <option value="AUDUSD=X">AUD/USD - Australian Dollar vs USD</option>
+            <option value="NZDUSD=X">NZD/USD - New Zealand Dollar vs USD</option>
           </optgroup>
         </select>
       </div>
+
       <div class="input-group">
-        <label for="timeframeSelect">Timeframe Analisis</label>
+        <label>⏱️ Historical Data</label>
         <select id="timeframeSelect">
           <option value="3mo">3 Bulan</option>
           <option value="6mo" selected>6 Bulan</option>
           <option value="1y">1 Tahun</option>
           <option value="2y">2 Tahun</option>
-          <option value="3y">3 Tahun</option>
         </select>
       </div>
+
       <div class="input-group">
-        <label for="epochsInput">AI Training Intensity</label>
-        <input
-          type="number"
-          id="epochsInput"
-          value="5"
-          min="5"
-          max="50"
-          style="width: 80px"
-        />
+        <label>🧠 AI Intensity</label>
+        <input type="number" id="epochsInput" value="5" min="5" max="50" />
       </div>
+
       <button class="btn-analyze" id="btnRun" onclick="initiateAnalysis()">
-        Run AI Engine ⚡
+        ⚡ Analyze
       </button>
     </div>
 
+    <!-- DASHBOARD GRID -->
     <div class="dashboard-grid">
-      <!-- ZONE 1: CHART DENGAN INTERACTIVE TOOLTIP -->
-      <div class="card full-width" style="min-height: 420px">
+      <!-- ZONE 1: INTERACTIVE CHART -->
+      <div class="card full-width">
         <div class="loading-overlay" id="loadingZone1">
           <div class="spinner"></div>
-          <div id="loadingText">Mengekstrak Pasar & Melatih Model LSTM...</div>
+          <div class="loading-text" id="loadingText">Extracting market data...</div>
         </div>
         <div class="chart-tooltip" id="chartTooltip">
-          <div id="tooltipDate">Tanggal</div>
-          <div id="tooltipPrice">Harga: $0.00</div>
-          <div id="tooltipChange">Perubahan: 0.00%</div>
+          <div class="tooltip-item"><strong>📅 Date:</strong> <span id="tooltipDate">-</span></div>
+          <div class="tooltip-item"><strong>💰 Price:</strong> <span id="tooltipPrice">$0.00</span></div>
+          <div class="tooltip-item"><strong>📊 Change:</strong> <span id="tooltipChange">0.00%</span></div>
         </div>
         <div class="card-title">
-          <span>Zone 1: Real-Time Price Chart & AI Prediction (Klik untuk detail harga)</span>
+          <span>📈 <span class="card-title-accent">Real-Time Chart & Predictions</span> (Click to view price)</span>
           <span id="activeTickerBadge" style="color: var(--accent-blue)">Active: NVDA</span>
         </div>
-        <div style="height: 360px; position: relative;">
+        <div class="chart-container">
           <canvas id="mainChart"></canvas>
         </div>
       </div>
 
       <!-- ZONE 2: RISK METRICS -->
       <div class="card">
-        <div class="card-title">Zone 2: Risk & Return Metrics</div>
-        <table>
-          <thead>
-            <tr>
-              <th>Metric</th>
-              <th>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Total Growth</td>
-              <td class="status-badge badge-green" id="mGrowth">0.00%</td>
-            </tr>
-            <tr>
-              <td>Max Drawdown</td>
-              <td style="color: var(--accent-red)" id="mMaxLoss">0.00%</td>
-            </tr>
-            <tr>
-              <td>Volatility (Annual)</td>
-              <td id="mPeak">0.00%</td>
-            </tr>
-            <tr>
-              <td>Sharpe Ratio</td>
-              <td id="mSharpe" style="font-weight: bold">0.00</td>
-            </tr>
-          </tbody>
+        <div class="card-title">📊 Risk Analysis</div>
+        <table style="width: 100%; font-size: 12px;">
+          <tr style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 8px 0; color: var(--text-secondary);">Growth</td>
+            <td style="padding: 8px 0; text-align: right;"><span class="status-badge" id="mGrowth" style="background: rgba(0, 240, 184, 0.2); color: var(--accent-green); padding: 4px 8px; border-radius: 4px;">0.00%</span></td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 8px 0; color: var(--text-secondary);">Max Drawdown</td>
+            <td style="padding: 8px 0; text-align: right; color: var(--accent-red);" id="mMaxLoss">0.00%</td>
+          </tr>
+          <tr style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 8px 0; color: var(--text-secondary);">Volatility</td>
+            <td style="padding: 8px 0; text-align: right;" id="mPeak">0.00%</td>
+          </tr>
+          <tr>
+            <td style="padding: 8px 0; color: var(--text-secondary);">Sharpe Ratio</td>
+            <td style="padding: 8px 0; text-align: right; font-weight: 700;" id="mSharpe">0.00</td>
+          </tr>
         </table>
       </div>
 
-      <!-- ZONE 3: PREDICTION -->
+      <!-- ZONE 3: SENTIMENT -->
       <div class="card">
-        <div class="card-title">Zone 3: Next-Day Prediction</div>
-        <div
-          style="
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            height: 100%;
-            text-align: center;
-            gap: 10px;
-          "
-        >
-          <div style="font-size: 12px; color: var(--text-secondary)">
-            PREDICTED PRICE
-          </div>
-          <div style="font-size: 36px; font-weight: bold; color: white" id="pPrice">
-            $0.00
-          </div>
-          <div>
-            <span class="status-badge" id="pReturn">+0.00%</span>
-          </div>
-          <div style="font-size: 11px; color: var(--text-secondary); margin-top: 5px;">
-            (LSTM AI Forecast)
-          </div>
-        </div>
-      </div>
-
-      <!-- ZONE 4: SENTIMENT -->
-      <div class="card">
-        <div class="card-title">Zone 4: Market Sentiment</div>
-        <div class="sentiment-container">
-          <div class="sentiment-status">
-            <div class="sentiment-score" id="sentimentStatus">+0.0</div>
-            <div style="text-align: left">
-              <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 5px">
-                MARKET SENTIMENT
-              </div>
-              <div id="sentimentDescription" style="font-size: 14px; font-weight: bold; color: var(--accent-blue)">
-                Neutral
-              </div>
-            </div>
-          </div>
-          <div style="flex-grow: 1;">
-            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 5px">
-              Trending News
-            </div>
-            <ul id="newsSentimentList">
-              <li>Menunggu analisis...</li>
+        <div class="card-title">💭 Market Sentiment</div>
+        <div style="text-align: center; margin-top: 20px;">
+          <div id="sentimentStatus" style="font-size: 36px; font-weight: 800; margin: 10px 0;">+0.0</div>
+          <div id="sentimentDescription" style="font-size: 13px; font-weight: 700; color: var(--accent-blue); margin-bottom: 15px;">Neutral</div>
+          <div style="font-size: 11px; color: var(--text-secondary); max-height: 80px; overflow-y: auto;">
+            <ul id="newsSentimentList" style="margin: 0; padding-left: 15px;">
+              <li style="list-style: none; margin: 4px 0;">Waiting for analysis...</li>
             </ul>
           </div>
         </div>
       </div>
 
-      <!-- ZONE 5: TECHNICAL + SENTIMENT ANALYSIS -->
-      <div class="card" style="grid-column: span 2;">
-        <div class="card-title">Zone 5: Combined Technical & Sentiment Analysis</div>
+      <!-- ZONE 4: PREDICTIONS (DAY, WEEK, MONTH) -->
+      <div class="card half-width">
+        <div class="card-title">🎯 <span class="card-title-accent">AI Predictions</span></div>
+        <div class="prediction-grid">
+          <div class="prediction-box">
+            <div class="prediction-timeframe">Next Day</div>
+            <div class="prediction-price" id="pred1Day">$0.00</div>
+            <div class="prediction-change" id="pred1DayChange" style="background: rgba(0, 240, 184, 0.2); color: var(--accent-green);">+0.00%</div>
+          </div>
+          <div class="prediction-box">
+            <div class="prediction-timeframe">Next Week</div>
+            <div class="prediction-price" id="pred1Week">$0.00</div>
+            <div class="prediction-change" id="pred1WeekChange" style="background: rgba(33, 150, 243, 0.2); color: var(--accent-blue);">+0.00%</div>
+          </div>
+          <div class="prediction-box">
+            <div class="prediction-timeframe">Next Month</div>
+            <div class="prediction-price" id="pred1Month">$0.00</div>
+            <div class="prediction-change" id="pred1MonthChange" style="background: rgba(168, 85, 247, 0.2); color: var(--accent-purple);">+0.00%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ZONE 5: TECHNICAL ANALYSIS -->
+      <div class="card half-width">
+        <div class="card-title">📊 <span class="card-title-accent">Technical Analysis</span></div>
         <div class="analysis-container" id="analysisContainer">
-          <div style="color: var(--text-secondary); text-align: center; padding: 20px;">
-            Analisis akan ditampilkan setelah menjalankan AI Engine...
+          <div style="color: var(--text-secondary); text-align: center; padding: 20px; font-size: 12px;">
+            Analysis will appear after running AI Engine...
           </div>
         </div>
       </div>
 
       <!-- ZONE 6: TRADING SIGNAL -->
       <div class="card">
-        <div class="card-title">Zone 6: Trading Signal</div>
-        <div style="display: flex; flex-direction: column; justify-content: center; height: 100%; gap: 10px;">
-          <div style="text-align: center;">
-            <div id="tradingSignalEmoji" style="font-size: 48px;">📊</div>
-            <div id="tradingSignal" style="font-size: 13px; color: var(--text-secondary); margin-top: 10px;">
-              HOLD
-            </div>
-            <div id="signalConfidence" style="font-size: 11px; color: var(--text-secondary); margin-top: 5px;">
-              Confidence: 0%
-            </div>
-          </div>
+        <div class="card-title">🎬 <span class="card-title-accent">Signal</span></div>
+        <div class="signal-display">
+          <div class="signal-emoji" id="tradingSignalEmoji">📊</div>
+          <div class="signal-text" id="tradingSignal" style="color: var(--text-secondary);">HOLD</div>
+          <div class="signal-confidence" id="signalConfidence">Confidence: 0%</div>
         </div>
       </div>
     </div>
@@ -502,27 +611,15 @@
       let mainChartInstance = null;
       let chartData = { dates: [], prices: [] };
 
-      // DAFTAR SAHAM
-      const STOCK_SYMBOLS = {
-        "NVDA": "NVIDIA - AI Chips Leader",
-        "AAPL": "Apple - Consumer Tech",
-        "MSFT": "Microsoft - Cloud & AI",
-        "TSLA": "Tesla - EV & Energy",
-        "BTC-USD": "Bitcoin - Crypto"
-      };
-
       async function fetchStockPrices(ticker, timeframe) {
         const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=${timeframe}&interval=1d`;
         const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(url);
-
         const response = await fetch(proxyUrl);
-        if (!response.ok) throw new Error("Gagal mengambil data dari Yahoo Finance.");
+        if (!response.ok) throw new Error("Failed to fetch data from Yahoo Finance.");
         const resData = await response.json();
-
         const result = resData.chart.result[0];
         const timestamps = result.timestamp;
         const closingPrices = result.indicators.quote[0].close;
-
         const cleanData = [];
         for (let i = 0; i < timestamps.length; i++) {
           if (closingPrices[i] !== null && closingPrices[i] !== undefined) {
@@ -539,45 +636,27 @@
         const initialPrice = prices[0];
         const finalPrice = prices[prices.length - 1];
         const totalGrowth = ((finalPrice - initialPrice) / initialPrice) * 100;
-
-        let maxDrawdown = 0;
-        let peak = prices[0];
-        let dailyReturns = [];
-
+        let maxDrawdown = 0, peak = prices[0], dailyReturns = [];
         for (let i = 1; i < prices.length; i++) {
           dailyReturns.push((prices[i] - prices[i - 1]) / prices[i - 1]);
           if (prices[i] > peak) peak = prices[i];
           let dd = (prices[i] - peak) / peak;
           if (dd < maxDrawdown) maxDrawdown = dd;
         }
-
         const meanReturn = dailyReturns.reduce((a, b) => a + b, 0) / dailyReturns.length;
         const variance = dailyReturns.reduce((a, b) => a + Math.pow(b - meanReturn, 2), 0) / dailyReturns.length;
         const stdDev = Math.sqrt(variance);
         const sharpe = stdDev !== 0 ? (meanReturn / stdDev) * Math.sqrt(252) : 0;
-
-        return {
-          growth: totalGrowth.toFixed(2),
-          maxLoss: (maxDrawdown * 100).toFixed(2),
-          volatility: (stdDev * Math.sqrt(252) * 100).toFixed(2),
-          sharpe: sharpe.toFixed(2),
-          stdDev: stdDev,
-          meanReturn: meanReturn
-        };
+        return { growth: totalGrowth.toFixed(2), maxLoss: (maxDrawdown * 100).toFixed(2), volatility: (stdDev * Math.sqrt(252) * 100).toFixed(2), sharpe: sharpe.toFixed(2), stdDev, meanReturn };
       }
 
-      // ANALISIS TEKNIKAL
       function analyzeTechnical(prices) {
         const lastPrice = prices[prices.length - 1];
         const sma20 = prices.slice(-20).reduce((a, b) => a + b) / 20;
         const sma50 = prices.length >= 50 ? prices.slice(-50).reduce((a, b) => a + b) / 50 : sma20;
-        
         const rsi = calculateRSI(prices);
         const macd = calculateMACD(prices);
-
-        let signal = "NEUTRAL";
-        let confidence = 50;
-
+        let signal = "NEUTRAL", confidence = 50;
         if (lastPrice > sma20 && sma20 > sma50 && rsi < 70) {
           signal = "BUY";
           confidence = 75;
@@ -585,7 +664,6 @@
           signal = "SELL";
           confidence = 75;
         }
-
         return { signal, confidence, sma20, sma50, rsi, macd };
       }
 
@@ -619,149 +697,139 @@
 
       function generateSentimentAnalysis(ticker) {
         const sentiments = [
-          { score: 0.85, desc: "🚀 Very Bullish", news: ["Inovasi teknologi breakthrough", "Earnings melebihi ekspektasi", "Partnership strategis baru"], reason: "Fundamental kuat + sentiment positif pasar" },
-          { score: 0.60, desc: "📈 Bullish", news: ["Pertumbuhan revenue konsisten", "Ekspansi pasar global", "Rating upgrade analyst"], reason: "Momentum positif + volume trading tinggi" },
-          { score: 0.35, desc: "➡️ Neutral", news: ["Performa sideway trading", "Menunggu catalyst penting", "Konsolidasi harga range"], reason: "Keseimbangan bull-bear, setup tidak jelas" },
-          { score: -0.35, desc: "📉 Bearish", news: ["Tekanan penjualan meningkat", "Support level break", "Guidance direvisi turun"], reason: "Tekanan selling weight, trend lemah" },
-          { score: -0.85, desc: "💥 Very Bearish", news: ["Crash pasar sektoral", "Risiko regulasi tinggi", "Downgrade institusi besar"], reason: "Fundamental melemah + panic selling" }
+          { score: 0.85, desc: "🚀 Very Bullish", news: ["Breakthrough innovation", "Earnings beat", "Strategic partnership"], reason: "Strong fundamentals + positive sentiment" },
+          { score: 0.60, desc: "📈 Bullish", news: ["Consistent growth", "Market expansion", "Analyst upgrade"], reason: "Positive momentum + high volume" },
+          { score: 0.35, desc: "➡️ Neutral", news: ["Sideway trading", "Awaiting catalyst", "Price consolidation"], reason: "Bull-bear balance, unclear setup" },
+          { score: -0.35, desc: "📉 Bearish", news: ["Selling pressure", "Support break", "Guidance cut"], reason: "Weak trend + selling weight" },
+          { score: -0.85, desc: "💥 Very Bearish", news: ["Sector crash", "Regulatory risk", "Institutional downgrade"], reason: "Weak fundamentals + panic selling" }
         ];
         return sentiments[Math.floor(Math.random() * sentiments.length)];
+      }
+
+      async function trainBrainEngine(pricesArray, epochsCount, daysAhead = 1) {
+        const min = Math.min(...pricesArray);
+        const max = Math.max(...pricesArray);
+        const scaled = pricesArray.map((p) => (p - min) / (max - min));
+        const timeStep = 30;
+        const xTrain = [], yTrain = [];
+        for (let i = timeStep; i < scaled.length - daysAhead; i++) {
+          xTrain.push(scaled.slice(i - timeStep, i));
+          yTrain.push(scaled[i + daysAhead - 1]);
+        }
+        const xs = tf.tensor2d(xTrain, [xTrain.length, timeStep]).reshape([xTrain.length, timeStep, 1]);
+        const ys = tf.tensor2d(yTrain, [yTrain.length, 1]);
+        const model = tf.sequential();
+        model.add(tf.layers.lstm({ units: 20, inputShape: [timeStep, 1] }));
+        model.add(tf.layers.dense({ units: 1 }));
+        model.compile({ optimizer: "adam", loss: "meanSquaredError" });
+        await model.fit(xs, ys, { epochs: parseInt(epochsCount), batch_size: 32, verbose: 0 });
+        const lastWindow = scaled.slice(scaled.length - timeStep);
+        const inputTensor = tf.tensor2d([lastWindow], [1, timeStep]).reshape([1, timeStep, 1]);
+        const outputTensor = model.predict(inputTensor);
+        const outputScaled = outputTensor.dataSync()[0];
+        const predictedPrice = outputScaled * (max - min) + min;
+        xs.dispose();
+        ys.dispose();
+        inputTensor.dispose();
+        outputTensor.dispose();
+        model.dispose();
+        return predictedPrice;
       }
 
       function generateCombinedAnalysis(ticker, technical, sentiment, metrics) {
         const html = `
           <div class="analysis-card">
-            <div class="analysis-title">📊 Technical Signal: ${technical.signal}</div>
+            <div class="analysis-title">📊 Technical: ${technical.signal}</div>
             <div class="analysis-content">
-              <strong>Confidence:</strong> ${technical.confidence}% | 
-              <strong>RSI:</strong> ${technical.rsi} | 
-              <strong>MACD:</strong> ${technical.macd}<br>
-              <strong>Alasan:</strong> ${technical.signal === 'BUY' ? 'Harga break diatas MA20, RSI belum overbought, momentum bullish' : (technical.signal === 'SELL' ? 'Harga break dibawah MA20, RSI bearish, volume tingi pada penjualan' : 'Harga konsolidasi, indikator belum memberikan sinyal jelas')}
+              <strong>Conf:</strong> ${technical.confidence}% | <strong>RSI:</strong> ${technical.rsi} | <strong>MACD:</strong> ${technical.macd}
             </div>
           </div>
           <div class="analysis-card">
             <div class="analysis-title">💰 Sentiment: ${sentiment.desc}</div>
             <div class="analysis-content">
-              <strong>Score:</strong> ${sentiment.score > 0 ? '+' : ''}${sentiment.score.toFixed(2)}<br>
-              <strong>Alasan:</strong> ${sentiment.reason}
+              <strong>Score:</strong> ${sentiment.score > 0 ? '+' : ''}${sentiment.score.toFixed(2)} | ${sentiment.reason}
             </div>
           </div>
           <div class="analysis-card">
-            <div class="analysis-title">📈 Risk Assessment</div>
+            <div class="analysis-title">📈 Risk: ${metrics.volatility}% Vol</div>
             <div class="analysis-content">
-              <strong>Volatility:</strong> ${metrics.volatility}% (Tahunan)<br>
-              <strong>Sharpe Ratio:</strong> ${metrics.sharpe} (Risk-adjusted return)<br>
-              <strong>Rekomendasi:</strong> ${metrics.sharpe > 1.5 ? '✅ Good Risk-Reward Ratio' : (metrics.sharpe > 0.5 ? '⚠️ Moderate Risk' : '❌ High Risk')}
+              Sharpe: ${metrics.sharpe} | ${metrics.sharpe > 1.5 ? '✅ Good' : (metrics.sharpe > 0.5 ? '⚠️ Moderate' : '❌ High')} Risk
             </div>
           </div>
           <div class="analysis-card">
-            <div class="analysis-title">🎯 Kesimpulan Kombinasi</div>
+            <div class="analysis-title">🎯 Conclusion</div>
             <div class="analysis-content">
-              ${technical.signal === 'BUY' && sentiment.score > 0.3 ? '✅ BULLISH - Saham positif dari kedua aspek (teknikal & sentimen). Pertimbangkan untuk akumulasi.' :
-                technical.signal === 'SELL' && sentiment.score < -0.3 ? '❌ BEARISH - Sinyal jual dari teknikal & sentimen lemah. Hindari atau take profit.' :
-                '⚠️ MIXED - Sinyal tidak selaras. Tunggu konfirmasi lebih jelas sebelum action.'}
+              ${technical.signal === 'BUY' && sentiment.score > 0.3 ? '✅ BULLISH Signal' :
+                technical.signal === 'SELL' && sentiment.score < -0.3 ? '❌ BEARISH Signal' :
+                '⚠️ MIXED Signal'}
             </div>
           </div>
         `;
         document.getElementById("analysisContainer").innerHTML = html;
       }
 
-      async function trainBrainEngine(pricesArray, epochsCount) {
-        const min = Math.min(...pricesArray);
-        const max = Math.max(...pricesArray);
-        const scaled = pricesArray.map((p) => (p - min) / (max - min));
-
-        const timeStep = 30;
-        const xTrain = [];
-        const yTrain = [];
-
-        for (let i = timeStep; i < scaled.length; i++) {
-          xTrain.push(scaled.slice(i - timeStep, i));
-          yTrain.push(scaled[i]);
-        }
-
-        const xs = tf.tensor2d(xTrain, [xTrain.length, timeStep]).reshape([xTrain.length, timeStep, 1]);
-        const ys = tf.tensor2d(yTrain, [yTrain.length, 1]);
-
-        const model = tf.sequential();
-        model.add(tf.layers.lstm({ units: 20, inputShape: [timeStep, 1] }));
-        model.add(tf.layers.dense({ units: 1 }));
-        model.compile({ optimizer: "adam", loss: "meanSquaredError" });
-
-        await model.fit(xs, ys, { epochs: parseInt(epochsCount), batch_size: 32 });
-
-        const lastWindow = scaled.slice(scaled.length - timeStep);
-        const inputTensor = tf.tensor2d([lastWindow], [1, timeStep]).reshape([1, timeStep, 1]);
-        const outputTensor = model.predict(inputTensor);
-        const outputScaled = outputTensor.dataSync()[0];
-        const predictedPrice = outputScaled * (max - min) + min;
-
-        xs.dispose();
-        ys.dispose();
-        inputTensor.dispose();
-        outputTensor.dispose();
-        model.dispose();
-
-        return predictedPrice;
-      }
-
       async function initiateAnalysis() {
         const ticker = document.getElementById("tickerSelect").value;
         const timeframe = document.getElementById("timeframeSelect").value;
         const epochs = document.getElementById("epochsInput").value;
-
         const loadingOverlay = document.getElementById("loadingZone1");
         const btnRun = document.getElementById("btnRun");
-
         loadingOverlay.style.display = "flex";
         btnRun.disabled = true;
         document.getElementById("activeTickerBadge").innerText = `Processing: ${ticker}...`;
-
         try {
           const rawData = await fetchStockPrices(ticker, timeframe);
           const dates = rawData.map((d) => d.date);
           const closePrices = rawData.map((d) => d.close);
           chartData = { dates, prices: closePrices };
           const lastActualPrice = closePrices[closePrices.length - 1];
-
           const metrics = calculateRiskMetrics(closePrices);
           document.getElementById("mGrowth").innerText = `${metrics.growth > 0 ? "+" : ""}${metrics.growth}%`;
-          document.getElementById("mGrowth").className = `status-badge ${metrics.growth >= 0 ? "badge-green" : "badge-red"}`;
           document.getElementById("mMaxLoss").innerText = `${metrics.maxLoss}%`;
           document.getElementById("mPeak").innerText = `${metrics.volatility}%`;
           document.getElementById("mSharpe").innerText = metrics.sharpe;
 
-          document.getElementById("loadingText").innerText = `Melatih LSTM AI (${epochs} Epochs)...`;
-          const predictedPrice = await trainBrainEngine(closePrices, epochs);
-          const predictedReturn = ((predictedPrice - lastActualPrice) / lastActualPrice) * 100;
+          document.getElementById("loadingText").innerText = `Training LSTM (Day, Week, Month)...`;
+          const pred1Day = await trainBrainEngine(closePrices, epochs, 1);
+          const pred1Week = await trainBrainEngine(closePrices, epochs, 5);
+          const pred1Month = await trainBrainEngine(closePrices, epochs, 20);
 
-          document.getElementById("pPrice").innerText = `$${predictedPrice.toFixed(2)}`;
-          document.getElementById("pReturn").innerText = `${predictedReturn >= 0 ? "▲ +" : "▼ "}${predictedReturn.toFixed(2)}%`;
-          document.getElementById("pReturn").className = `status-badge ${predictedReturn >= 0 ? "badge-green" : "badge-red"}`;
+          const change1Day = ((pred1Day - lastActualPrice) / lastActualPrice) * 100;
+          const change1Week = ((pred1Week - lastActualPrice) / lastActualPrice) * 100;
+          const change1Month = ((pred1Month - lastActualPrice) / lastActualPrice) * 100;
 
-          // ANALISIS TEKNIKAL
+          document.getElementById("pred1Day").innerText = `$${pred1Day.toFixed(2)}`;
+          document.getElementById("pred1DayChange").innerText = `${change1Day >= 0 ? "▲ +" : "▼ "}${change1Day.toFixed(2)}%`;
+          document.getElementById("pred1DayChange").style.background = change1Day >= 0 ? "rgba(0, 240, 184, 0.2)" : "rgba(255, 71, 87, 0.2)";
+          document.getElementById("pred1DayChange").style.color = change1Day >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+
+          document.getElementById("pred1Week").innerText = `$${pred1Week.toFixed(2)}`;
+          document.getElementById("pred1WeekChange").innerText = `${change1Week >= 0 ? "▲ +" : "▼ "}${change1Week.toFixed(2)}%`;
+          document.getElementById("pred1WeekChange").style.background = change1Week >= 0 ? "rgba(0, 240, 184, 0.2)" : "rgba(255, 71, 87, 0.2)";
+          document.getElementById("pred1WeekChange").style.color = change1Week >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+
+          document.getElementById("pred1Month").innerText = `$${pred1Month.toFixed(2)}`;
+          document.getElementById("pred1MonthChange").innerText = `${change1Month >= 0 ? "▲ +" : "▼ "}${change1Month.toFixed(2)}%`;
+          document.getElementById("pred1MonthChange").style.background = change1Month >= 0 ? "rgba(0, 240, 184, 0.2)" : "rgba(255, 71, 87, 0.2)";
+          document.getElementById("pred1MonthChange").style.color = change1Month >= 0 ? "var(--accent-green)" : "var(--accent-red)";
+
           const technical = analyzeTechnical(closePrices);
           const sentiment = generateSentimentAnalysis(ticker);
-          
-          // UPDATE ZONE 4
-          document.getElementById("sentimentStatus").innerText = sentiment.score > 0 ? `+${sentiment.score.toFixed(2)}` : sentiment.score.toFixed(2);
-          document.getElementById("sentimentStatus").style.color = sentiment.score > 0 ? "#00e676" : (sentiment.score < 0 ? "#ff3d00" : "#29b6f6");
-          document.getElementById("sentimentDescription").innerText = sentiment.desc;
-          document.getElementById("sentimentDescription").style.color = sentiment.score > 0.5 ? "#00e676" : (sentiment.score < -0.5 ? "#ff3d00" : "#29b6f6");
-          document.getElementById("newsSentimentList").innerHTML = sentiment.news.map(news => `<li>${news}</li>`).join("");
 
-          // UPDATE ZONE 6: TRADING SIGNAL
+          document.getElementById("sentimentStatus").innerText = sentiment.score > 0 ? `+${sentiment.score.toFixed(2)}` : sentiment.score.toFixed(2);
+          document.getElementById("sentimentStatus").style.color = sentiment.score > 0 ? "var(--accent-green)" : (sentiment.score < 0 ? "var(--accent-red)" : "var(--accent-blue)");
+          document.getElementById("sentimentDescription").innerText = sentiment.desc;
+          document.getElementById("newsSentimentList").innerHTML = sentiment.news.map(news => `<li style="list-style: none; margin: 4px 0;">• ${news}</li>`).join("");
+
           document.getElementById("tradingSignalEmoji").innerText = technical.signal === 'BUY' ? '🚀' : (technical.signal === 'SELL' ? '💔' : '➡️');
           document.getElementById("tradingSignal").innerText = technical.signal;
-          document.getElementById("signalConfidence").innerText = `Confidence: ${technical.confidence}%`;
           document.getElementById("tradingSignal").style.color = technical.signal === 'BUY' ? 'var(--accent-green)' : (technical.signal === 'SELL' ? 'var(--accent-red)' : 'var(--accent-blue)');
+          document.getElementById("signalConfidence").innerText = `Confidence: ${technical.confidence}%`;
 
-          // COMBINED ANALYSIS (ZONE 5)
           generateCombinedAnalysis(ticker, technical, sentiment, metrics);
 
-          document.getElementById("loadingText").innerText = "Menyusun Visualisasi...";
-          renderMainChart(dates, closePrices, predictedPrice, ticker);
-
+          document.getElementById("loadingText").innerText = "Rendering chart...";
+          renderMainChart(dates, closePrices, pred1Day, ticker);
           document.getElementById("activeTickerBadge").innerText = `Active: ${ticker}`;
         } catch (err) {
           console.error(err);
@@ -777,31 +845,30 @@
         const initialPrice = prices[0];
         const normalizedPrices = prices.map((p) => (p / initialPrice) * 100);
         const normalizedNextPrice = (nextPrice / initialPrice) * 100;
-
         const extendedDates = [...dates, "Next Day"];
         const chartDataValues = [...normalizedPrices, normalizedNextPrice];
-
         if (mainChartInstance) mainChartInstance.destroy();
-
-        const gradientFill = ctx.createLinearGradient(0, 0, 0, 300);
-        gradientFill.addColorStop(0, "rgba(41, 182, 246, 0.25)");
-        gradientFill.addColorStop(1, "rgba(11, 15, 25, 0)");
-
+        const gradientFill = ctx.createLinearGradient(0, 0, 0, 400);
+        gradientFill.addColorStop(0, "rgba(33, 150, 243, 0.3)");
+        gradientFill.addColorStop(0.5, "rgba(168, 85, 247, 0.2)");
+        gradientFill.addColorStop(1, "rgba(33, 150, 243, 0)");
         mainChartInstance = new Chart(ctx, {
           type: "line",
           data: {
             labels: extendedDates,
             datasets: [{
-              label: `${ticker} Normalized Price`,
+              label: `${ticker} Normalized Index`,
               data: chartDataValues,
-              borderColor: "#29b6f6",
-              borderWidth: 2,
+              borderColor: "rgba(33, 150, 243, 0.8)",
+              borderWidth: 3,
               fill: true,
               backgroundColor: gradientFill,
-              tension: 0.1,
+              tension: 0.3,
               pointRadius: 0,
-              pointHoverRadius: 6,
-              pointHoverBackgroundColor: "#00e676",
+              pointHoverRadius: 8,
+              pointHoverBackgroundColor: "rgba(0, 240, 184, 0.8)",
+              pointBorderColor: "rgba(0, 240, 184, 0.8)",
+              pointBorderWidth: 2
             }],
           },
           options: {
@@ -809,11 +876,11 @@
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             scales: {
-              x: { grid: { color: "#1f293d" }, ticks: { color: "#8a99ad" } },
-              y: { grid: { color: "#1f293d" }, ticks: { color: "#8a99ad" } },
+              x: { grid: { color: "rgba(42, 63, 95, 0.3)" }, ticks: { color: "var(--text-secondary)" } },
+              y: { grid: { color: "rgba(42, 63, 95, 0.3)" }, ticks: { color: "var(--text-secondary)" } },
             },
             plugins: {
-              legend: { display: true, labels: { color: "white" } },
+              legend: { display: true, labels: { color: "var(--text-secondary)", font: { weight: "bold" } } },
               tooltip: { enabled: false }
             },
             onClick: (evt) => onChartClick(evt, chartData, prices)
@@ -825,26 +892,22 @@
         const canvasPosition = Chart.helpers.getRelativePosition(evt, mainChartInstance);
         const dataX = mainChartInstance.scales.x.getValueForPixel(canvasPosition.x);
         const index = Math.round(dataX);
-
         if (index >= 0 && index < prices.length) {
           const tooltip = document.getElementById("chartTooltip");
           const price = prices[index];
           const prevPrice = index > 0 ? prices[index - 1] : price;
           const change = ((price - prevPrice) / prevPrice * 100).toFixed(2);
-
-          document.getElementById("tooltipDate").innerText = `📅 ${data.dates[index]}`;
-          document.getElementById("tooltipPrice").innerText = `💰 Harga: $${price.toFixed(2)}`;
-          document.getElementById("tooltipChange").innerText = `📊 Perubahan: ${change > 0 ? '+' : ''}${change}%`;
-
+          document.getElementById("tooltipDate").innerText = data.dates[index];
+          document.getElementById("tooltipPrice").innerText = `$${price.toFixed(2)}`;
+          document.getElementById("tooltipChange").innerText = `${change > 0 ? '+' : ''}${change}%`;
           tooltip.style.left = evt.x + 10 + "px";
-          tooltip.style.top = evt.y - 80 + "px";
+          tooltip.style.top = evt.y - 120 + "px";
           tooltip.classList.add("show");
-
           setTimeout(() => tooltip.classList.remove("show"), 3000);
         }
       }
 
-      window.onload = function () {
+      window.onload = () => {
         document.getElementById("tickerSelect").value = "NVDA";
         initiateAnalysis();
       };
