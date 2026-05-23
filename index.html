@@ -334,7 +334,7 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
-        max-height: 400px;
+        max-height: 500px;
         overflow-y: auto;
       }
 
@@ -452,6 +452,15 @@
       <div class="input-group">
         <label>📊 Pilih Asset</label>
         <select id="tickerSelect">
+          <optgroup label="🇮🇩 SAHAM INDONESIA (IDX)">
+            <option value="BBCA.JK">BBCA - Bank BCA</option>
+            <option value="BMRI.JK">BMRI - Bank Mandiri</option>
+            <option value="ASII.JK">ASII - Astra International</option>
+            <option value="TLKM.JK">TLKM - Telekomunikasi Indonesia</option>
+            <option value="JSMR.JK">JSMR - Jasa Marga</option>
+            <option value="ADRO.JK">ADRO - Adaro Energy</option>
+            <option value="INDF.JK">INDF - Indofood</option>
+          </optgroup>
           <optgroup label="🇺🇸 TECH US (Silicon Valley)">
             <option value="NVDA">NVDA - NVIDIA (AI Chips)</option>
             <option value="AAPL">AAPL - Apple (Consumer Tech)</option>
@@ -520,7 +529,7 @@
         </div>
         <div class="card-title">
           <span>📈 <span class="card-title-accent">Real-Time Chart & Predictions</span> (Click to view price)</span>
-          <span id="activeTickerBadge" style="color: var(--accent-blue)">Active: NVDA</span>
+          <span id="activeTickerBadge" style="color: var(--accent-blue)">Active: BBCA</span>
         </div>
         <div class="chart-container">
           <canvas id="mainChart"></canvas>
@@ -586,9 +595,9 @@
         </div>
       </div>
 
-      <!-- ZONE 5: TECHNICAL ANALYSIS -->
-      <div class="card half-width">
-        <div class="card-title">📊 <span class="card-title-accent">Technical Analysis</span></div>
+      <!-- ZONE 5: TECHNICAL ANALYSIS (COMPREHENSIVE) -->
+      <div class="card full-width">
+        <div class="card-title">📊 <span class="card-title-accent">Comprehensive Technical Analysis</span></div>
         <div class="analysis-container" id="analysisContainer">
           <div style="color: var(--text-secondary); text-align: center; padding: 20px; font-size: 12px;">
             Analysis will appear after running AI Engine...
@@ -620,12 +629,14 @@
         const result = resData.chart.result[0];
         const timestamps = result.timestamp;
         const closingPrices = result.indicators.quote[0].close;
+        const volumes = result.indicators.quote[0].volume;
         const cleanData = [];
         for (let i = 0; i < timestamps.length; i++) {
           if (closingPrices[i] !== null && closingPrices[i] !== undefined) {
             cleanData.push({
               date: new Date(timestamps[i] * 1000).toISOString().split("T")[0],
               close: closingPrices[i],
+              volume: volumes[i] || 0,
             });
           }
         }
@@ -647,24 +658,33 @@
         const variance = dailyReturns.reduce((a, b) => a + Math.pow(b - meanReturn, 2), 0) / dailyReturns.length;
         const stdDev = Math.sqrt(variance);
         const sharpe = stdDev !== 0 ? (meanReturn / stdDev) * Math.sqrt(252) : 0;
-        return { growth: totalGrowth.toFixed(2), maxLoss: (maxDrawdown * 100).toFixed(2), volatility: (stdDev * Math.sqrt(252) * 100).toFixed(2), sharpe: sharpe.toFixed(2), stdDev, meanReturn };
+        return { growth: totalGrowth.toFixed(2), maxLoss: (maxDrawdown * 100).toFixed(2), volatility: (stdDev * Math.sqrt(252) * 100).toFixed(2), sharpe: sharpe.toFixed(2), stdDev, meanReturn, dailyReturns };
       }
 
       function analyzeTechnical(prices) {
         const lastPrice = prices[prices.length - 1];
         const sma20 = prices.slice(-20).reduce((a, b) => a + b) / 20;
         const sma50 = prices.length >= 50 ? prices.slice(-50).reduce((a, b) => a + b) / 50 : sma20;
+        const sma200 = prices.length >= 200 ? prices.slice(-200).reduce((a, b) => a + b) / 200 : sma50;
         const rsi = calculateRSI(prices);
         const macd = calculateMACD(prices);
+        const bb = calculateBollingerBands(prices);
+        const stoch = calculateStochastic(prices);
         let signal = "NEUTRAL", confidence = 50;
-        if (lastPrice > sma20 && sma20 > sma50 && rsi < 70) {
+        if (lastPrice > sma20 && sma20 > sma50 && sma50 > sma200 && rsi < 70) {
           signal = "BUY";
-          confidence = 75;
-        } else if (lastPrice < sma20 && sma20 < sma50 && rsi > 30) {
+          confidence = 80;
+        } else if (lastPrice < sma20 && sma20 < sma50 && sma50 < sma200 && rsi > 30) {
           signal = "SELL";
-          confidence = 75;
+          confidence = 80;
+        } else if (lastPrice > sma50 && rsi < 50) {
+          signal = "BUY";
+          confidence = 60;
+        } else if (lastPrice < sma50 && rsi > 50) {
+          signal = "SELL";
+          confidence = 60;
         }
-        return { signal, confidence, sma20, sma50, rsi, macd };
+        return { signal, confidence, sma20, sma50, sma200, rsi, macd, bb, stoch };
       }
 
       function calculateRSI(prices, period = 14) {
@@ -695,6 +715,43 @@
         return ema;
       }
 
+      function calculateBollingerBands(prices, period = 20) {
+        const sma = prices.slice(-period).reduce((a, b) => a + b) / period;
+        const variance = prices.slice(-period).reduce((a, b) => a + Math.pow(b - sma, 2), 0) / period;
+        const stdDev = Math.sqrt(variance);
+        return {
+          upper: (sma + 2 * stdDev).toFixed(2),
+          middle: sma.toFixed(2),
+          lower: (sma - 2 * stdDev).toFixed(2)
+        };
+      }
+
+      function calculateStochastic(prices, period = 14) {
+        const low = Math.min(...prices.slice(-period));
+        const high = Math.max(...prices.slice(-period));
+        const close = prices[prices.length - 1];
+        const k = ((close - low) / (high - low) * 100).toFixed(2);
+        return { k, overbought: k > 80, oversold: k < 20 };
+      }
+
+      function calculateMomentum(prices) {
+        const lastPrice = prices[prices.length - 1];
+        const prevPrice = prices[prices.length - 5] || prices[0];
+        const momentum = ((lastPrice - prevPrice) / prevPrice * 100).toFixed(2);
+        return momentum;
+      }
+
+      function analyzeVolume(rawData) {
+        if (!rawData || rawData.length === 0) return { trend: "N/A", strength: "Neutral" };
+        const volumes = rawData.map(d => d.volume);
+        const avgVolume = volumes.reduce((a, b) => a + b) / volumes.length;
+        const recentVolume = volumes.slice(-5).reduce((a, b) => a + b) / 5;
+        let strength = "Weak";
+        if (recentVolume > avgVolume * 1.5) strength = "Strong";
+        else if (recentVolume > avgVolume) strength = "Moderate";
+        return { avgVolume: avgVolume.toFixed(0), recentVolume: recentVolume.toFixed(0), strength };
+      }
+
       function generateSentimentAnalysis(ticker) {
         const sentiments = [
           { score: 0.85, desc: "🚀 Very Bullish", news: ["Breakthrough innovation", "Earnings beat", "Strategic partnership"], reason: "Strong fundamentals + positive sentiment" },
@@ -716,6 +773,7 @@
           xTrain.push(scaled.slice(i - timeStep, i));
           yTrain.push(scaled[i + daysAhead - 1]);
         }
+        if (xTrain.length === 0) return pricesArray[pricesArray.length - 1];
         const xs = tf.tensor2d(xTrain, [xTrain.length, timeStep]).reshape([xTrain.length, timeStep, 1]);
         const ys = tf.tensor2d(yTrain, [yTrain.length, 1]);
         const model = tf.sequential();
@@ -736,32 +794,64 @@
         return predictedPrice;
       }
 
-      function generateCombinedAnalysis(ticker, technical, sentiment, metrics) {
+      function generateCombinedAnalysis(ticker, technical, sentiment, metrics, rawData) {
+        const volumeAnalysis = analyzeVolume(rawData);
+        const momentum = calculateMomentum(rawData.map(d => d.close));
+        
+        const trendStatus = metrics.growth > 0 ? "📈 Uptrend" : "📉 Downtrend";
+        const volatilityStatus = metrics.volatility > 30 ? "⚠️ High" : (metrics.volatility > 15 ? "⚠️ Medium" : "✅ Low");
+        
         const html = `
           <div class="analysis-card">
-            <div class="analysis-title">📊 Technical: ${technical.signal}</div>
+            <div class="analysis-title">📊 Trend & Price Action</div>
             <div class="analysis-content">
-              <strong>Conf:</strong> ${technical.confidence}% | <strong>RSI:</strong> ${technical.rsi} | <strong>MACD:</strong> ${technical.macd}
+              <strong>Trend:</strong> ${trendStatus} | <strong>Growth:</strong> ${metrics.growth > 0 ? '+' : ''}${metrics.growth}%<br/>
+              <strong>SMA20/50/200:</strong> ${technical.sma20.toFixed(2)} / ${technical.sma50.toFixed(2)} / ${technical.sma200.toFixed(2)}
             </div>
           </div>
           <div class="analysis-card">
-            <div class="analysis-title">💰 Sentiment: ${sentiment.desc}</div>
+            <div class="analysis-title">🎯 Technical Indicators</div>
             <div class="analysis-content">
-              <strong>Score:</strong> ${sentiment.score > 0 ? '+' : ''}${sentiment.score.toFixed(2)} | ${sentiment.reason}
+              <strong>RSI (14):</strong> ${technical.rsi} ${technical.rsi > 70 ? '(Overbought)' : (technical.rsi < 30 ? '(Oversold)' : '')}<br/>
+              <strong>MACD:</strong> ${technical.macd} | <strong>Stoch K:</strong> ${technical.stoch.k}%
             </div>
           </div>
           <div class="analysis-card">
-            <div class="analysis-title">📈 Risk: ${metrics.volatility}% Vol</div>
+            <div class="analysis-title">📈 Bollinger Bands</div>
             <div class="analysis-content">
-              Sharpe: ${metrics.sharpe} | ${metrics.sharpe > 1.5 ? '✅ Good' : (metrics.sharpe > 0.5 ? '⚠️ Moderate' : '❌ High')} Risk
+              <strong>Upper:</strong> ${technical.bb.upper} | <strong>Mid:</strong> ${technical.bb.middle}<br/>
+              <strong>Lower:</strong> ${technical.bb.lower}
             </div>
           </div>
           <div class="analysis-card">
-            <div class="analysis-title">🎯 Conclusion</div>
+            <div class="analysis-title">💹 Momentum & Volume</div>
             <div class="analysis-content">
-              ${technical.signal === 'BUY' && sentiment.score > 0.3 ? '✅ BULLISH Signal' :
-                technical.signal === 'SELL' && sentiment.score < -0.3 ? '❌ BEARISH Signal' :
-                '⚠️ MIXED Signal'}
+              <strong>Momentum (5d):</strong> ${momentum > 0 ? '+' : ''}${momentum}%<br/>
+              <strong>Volume Strength:</strong> ${volumeAnalysis.strength} | Avg: ${volumeAnalysis.avgVolume}
+            </div>
+          </div>
+          <div class="analysis-card">
+            <div class="analysis-title">⚡ Risk Metrics</div>
+            <div class="analysis-content">
+              <strong>Volatility:</strong> ${volatilityStatus} (${metrics.volatility}%)<br/>
+              <strong>Sharpe Ratio:</strong> ${metrics.sharpe} | <strong>Max Drawdown:</strong> ${metrics.maxLoss}%
+            </div>
+          </div>
+          <div class="analysis-card">
+            <div class="analysis-title">💭 Sentiment & Signal</div>
+            <div class="analysis-content">
+              <strong>Sentiment:</strong> ${sentiment.desc} (${sentiment.score > 0 ? '+' : ''}${sentiment.score.toFixed(2)})<br/>
+              <strong>Signal Conf:</strong> ${technical.confidence}% | ${sentiment.reason}
+            </div>
+          </div>
+          <div class="analysis-card">
+            <div class="analysis-title">🎬 Trading Recommendation</div>
+            <div class="analysis-content">
+              ${technical.signal === 'BUY' && sentiment.score > 0.3 ? '✅ STRONG BUY - Bullish alignment' :
+                technical.signal === 'SELL' && sentiment.score < -0.3 ? '❌ STRONG SELL - Bearish alignment' :
+                technical.signal === 'BUY' ? '📈 BUY - Technical bullish' :
+                technical.signal === 'SELL' ? '📉 SELL - Technical bearish' :
+                '⚠️ HOLD - Mixed signals, await clarity'}
             </div>
           </div>
         `;
@@ -778,10 +868,11 @@
         btnRun.disabled = true;
         document.getElementById("activeTickerBadge").innerText = `Processing: ${ticker}...`;
         try {
+          document.getElementById("loadingText").innerText = "Fetching market data...";
           const rawData = await fetchStockPrices(ticker, timeframe);
           const dates = rawData.map((d) => d.date);
           const closePrices = rawData.map((d) => d.close);
-          chartData = { dates, prices: closePrices };
+          chartData = { dates, prices: closePrices, rawData };
           const lastActualPrice = closePrices[closePrices.length - 1];
           const metrics = calculateRiskMetrics(closePrices);
           document.getElementById("mGrowth").innerText = `${metrics.growth > 0 ? "+" : ""}${metrics.growth}%`;
@@ -826,7 +917,7 @@
           document.getElementById("tradingSignal").style.color = technical.signal === 'BUY' ? 'var(--accent-green)' : (technical.signal === 'SELL' ? 'var(--accent-red)' : 'var(--accent-blue)');
           document.getElementById("signalConfidence").innerText = `Confidence: ${technical.confidence}%`;
 
-          generateCombinedAnalysis(ticker, technical, sentiment, metrics);
+          generateCombinedAnalysis(ticker, technical, sentiment, metrics, rawData);
 
           document.getElementById("loadingText").innerText = "Rendering chart...";
           renderMainChart(dates, closePrices, pred1Day, ticker);
@@ -908,7 +999,7 @@
       }
 
       window.onload = () => {
-        document.getElementById("tickerSelect").value = "NVDA";
+        document.getElementById("tickerSelect").value = "BBCA.JK";
         initiateAnalysis();
       };
     </script>
